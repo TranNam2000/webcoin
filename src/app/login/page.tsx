@@ -1,15 +1,17 @@
-import Link from "next/link";
-import { useRouter } from "next/router";
-
+'use client'
+import { useRouter } from 'next/navigation'
 export default function Home() {
+
   const router = useRouter();
-  
 
+  const handleClick = (e: { preventDefault: () => void; }) => {
+    e.preventDefault()
+    router.push('/')
+  }
 
-
-    return ( 
-  <div className="flex min-h-screen w-full flex-col justify-center px-6 py-12 lg:px-8 bg-whites">
-
+  return (
+    <div className='bg-white'>
+      <div className="flex min-h-screen w-full flex-col justify-center px-6 py-12 lg:px-8 bg-whites">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <img
             className="mx-auto h-10 w-auto"
@@ -20,7 +22,7 @@ export default function Home() {
             Sign in to your account
           </h2>
         </div>
-  
+
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
           <form className="space-y-6" action="#" method="POST">
             <div>
@@ -41,7 +43,7 @@ export default function Home() {
                 />
               </div>
             </div>
-  
+
             <div>
               <div className="flex items-center justify-between">
                 <label
@@ -70,30 +72,29 @@ export default function Home() {
                 />
               </div>
             </div>
-  
+
             <div>
               <button
                 type="submit"
-                onClick={(e)=> }
+                onClick={() => { handleClick }}
                 className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               >
                 Sign in
               </button>
             </div>
           </form>
-  
+
           <p className="mt-10 text-center text-sm/6 text-gray-500">
             Not a member?{" "}
             <a
-              href="#"
+
               className="font-semibold text-indigo-600 hover:text-indigo-500"
             >
-             Sign Up
+              Sign Up
             </a>
           </p>
         </div>
       </div>
-  
-    );
-  }
-  
+    </div>
+  );
+}

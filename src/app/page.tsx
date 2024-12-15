@@ -1,13 +1,14 @@
 import Image from "next/image";
-import Login from "./login/login"
+import Login from "./login/page"
+import Main  from "./main/page";
 import Head from "./header/header";
 import Bottom from "./bottom/bottom";
 export default function Home() {
   return (
-    <div className="bg-white">
+    <div>
       <Head/>
-      <Login/>
+      <Main/>
       <Bottom/>
-    </div>
+    </div>  
   );
 }
