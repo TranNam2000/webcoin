@@ -95,7 +95,6 @@ export default function Navbar() {
       <nav className="fixed top-0 left-0 w-full bg-gray-800 z-50">
   <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
     <div className="relative flex h-16 items-center justify-center">
-      {/* Logo và Menu */}
       <div className="flex items-center space-x-6">
         {/* Logo */}
           <img
@@ -104,7 +103,6 @@ export default function Navbar() {
             alt="Your Company"
           />
 
-        {/* Menu */}
         <div className="flex space-x-4">
           {['Home', 'Team', 'Projects', 'Calendar'].map((menu) => (
             <a
@@ -121,9 +119,6 @@ export default function Navbar() {
     </div>
   </div>
 </nav>
-
-
-      {/* Dynamic Content */}
       <div >
         {CurrentContent}
       </div>
