@@ -180,9 +180,36 @@ export default function Home() {
                 <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow duration-200">
                   <h3 className="font-semibold text-gray-700">Account Flow</h3>
                   <p className="text-gray-500 mt-2">Movements</p>
-                  <div className="w-full max-w-4xl mx-auto">
-        <Bar options={options} data={data} />
-      </div>
+                  
+                  <div className="grid grid-cols-3 gap-4 mt-4">
+                    {/* Row 1 */}
+                    <div className="bg-gray-900 p-4 rounded-lg">
+                      <h4 className="text-white font-medium">Spark</h4>
+                      <p className="text-white text-xl font-bold">0.65%</p>
+                    </div>
+                    <div className="bg-gray-900 p-4 rounded-lg">
+                      <h4 className="text-white font-medium">Blaze</h4>
+                      <p className="text-white text-xl font-bold">0.91%</p>
+                    </div>
+                    <div className="bg-gray-900 p-4 rounded-lg">
+                      <h4 className="text-white font-medium">Radiance</h4>
+                      <p className="text-white text-xl font-bold">1.10%</p>
+                    </div>
+
+                    {/* Row 2 */}
+                    <div className="bg-gray-900 p-4 rounded-lg">
+                      <h4 className="text-white font-medium">Glow</h4>
+                      <p className="text-white text-xl font-bold">1.45%</p>
+                    </div>
+                    <div className="bg-gray-900 p-4 rounded-lg">
+                      <h4 className="text-white font-medium">Luminous</h4>
+                      <p className="text-white text-xl font-bold">1.73%</p>
+                    </div>
+                    <div className="bg-gray-900 p-4 rounded-lg">
+                      <h4 className="text-white font-medium">Brilliance</h4>
+                      <p className="text-white text-xl font-bold">2.46%</p>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Company Performance */}

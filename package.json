@@ -9,13 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.0",
     "@react-icons/all-files": "^4.1.0",
     "chart.js": "^4.4.7",
-    "next": "15.0.4",
+    "next": "^15.0.4",
     "react": "^19.0.0",
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^19.0.0",
-    "recharts": "^2.15.0"
+    "recharts": "^2.15.0",
+    "resend": "^4.0.1"
   },
   "devDependencies": {
     "@types/node": "^20",

@@ -11,7 +11,7 @@ export default function Home() {
 
   const fakeUsers = [
     { email: 'tranhoainamnb1312@gmail.com', password: '123456', name: 'User One' },
-    { email: 'user2@example.com', password: 'password2', name: 'User Two' },
+    { email: 'admin@gmail.com', password: '123456', name: 'User Two' },
   ];
 
   const handleSubmit =(e: { preventDefault: () => void; }) => {

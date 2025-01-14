@@ -1,5 +1,12 @@
+'use client';
+import { useState } from 'react';
+import InvestmentModal from '@/components/InvestmentModal';
+import WithdrawalModal from '@/components/WithdrawalModal';
 
-function Payments() {
+export default function Payment() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+
   return (
     <div>
          <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow duration-200">
@@ -43,19 +50,36 @@ function Payments() {
 
         {/* Sidebar Section */} 
         <div className="flex flex-col space-y-8">
-          {/* Account Flow */}
-          <div className="bg-white shadow-sm rounded-xl p-6">
-            <h2 className="text-xl font-bold pb-4">Account Flow</h2>
-            <div className="h-32 bg-gray-100 rounded-lg"></div>
-          </div>
-
-          {/* Latest Movements */}
-          <div className="bg-white shadow-sm rounded-xl p-6">
-            <h2 className="text-xl font-bold pb-4">Latest Movements</h2>
-            <div className="h-32 bg-gray-100 rounded-lg"></div>
+          {/* Action Buttons */}
+          <div className="flex flex-col space-y-4">
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center justify-center space-x-2 bg-black text-white p-4 rounded-lg hover:bg-gray-800 transition-colors"
+            >
+              <span className="text-green-500">BUY</span>
+              <span>Buy</span>
+            </button>
+            
+            <button 
+              onClick={() => setIsWithdrawModalOpen(true)} 
+              className="flex items-center justify-center space-x-2 bg-black text-white p-4 rounded-lg hover:bg-gray-800 transition-colors"
+            >
+              <span className="text-green-500">$</span>
+              <span>Withdraw</span>
+            </button>
           </div>
         </div>
       </div>
+
+      <InvestmentModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+      
+      <WithdrawalModal
+        isOpen={isWithdrawModalOpen}
+        onClose={() => setIsWithdrawModalOpen(false)}
+      />
       </div>
 
   );
@@ -88,5 +112,3 @@ const wallets = [
   },
   // Add more wallets as needed
 ];
-
-export default Payments;
