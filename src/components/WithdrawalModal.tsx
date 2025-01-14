@@ -106,7 +106,6 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
 
       const data = await response.json();
       if (data.success) {
-        alert(network);
         setAmount('');
         setAddress('');
         onClose();
