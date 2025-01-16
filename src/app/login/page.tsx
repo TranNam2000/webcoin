@@ -14,25 +14,37 @@ export default function Home() {
     { email: 'admin@gmail.com', password: '123456', name: 'User Two' },
   ];
 
-  const handleSubmit =(e: { preventDefault: () => void; }) => {
-    e.preventDefault(); // Ngăn reload trang mặc định
+  const handleSubmit = async (e: { preventDefault: () => void; }) => {
+    e.preventDefault();
     setError('');
     setLoading(true);
 
-    setTimeout(() => {
-      const user = fakeUsers.find((u) => u.email === email && u.password === password);
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
 
-      if (user) {
-        localStorage.setItem('token', 'fake-token-12345');
-        localStorage.setItem('user', JSON.stringify(user));
+      const data = await response.json();
 
-        router.push('/home'); // Chuyển trang sau khi login
+      if (response.ok) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        router.push('/home');
       } else {
-        setError('Invalid email or password');
+        setError(data.error || 'Login failed');
       }
-
+    } catch (err) {
+      setError('Connection error');
+    } finally {
       setLoading(false);
-    }, 1000); // Mô phỏng thời gian xử lý
+    }
   };
   
 
@@ -40,8 +52,6 @@ export default function Home() {
 
     router.push("/register")
   }
-
-
 
   return (
     <div className="bg-white">
