@@ -1,73 +1,323 @@
 'use client'
 
-import { useState } from 'react';
-import { Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { useEffect, useState } from 'react';
+import { Line } from 'react-chartjs-2';
+import { Chart as ChartJS, LineElement, PointElement, LinearScale, CategoryScale, Title, Tooltip, Legend } from 'chart.js';
+import zoomPlugin from 'chartjs-plugin-zoom';
 import Payment from '../payment/page'
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(
+  LineElement, 
+  PointElement, 
+  LinearScale, 
+  CategoryScale, 
+  Title, 
+  Tooltip, 
+  Legend,
+  zoomPlugin
+);
+
+interface ZoomState {
+    x: number;
+    y: number;
+    xMin: number;
+    xMax: number;
+    yMin: number;
+    yMax: number;
+}
+
+interface Trade {
+  symbol: string;
+  name: string;
+  price: number;
+  change24h: number;
+  volume24h: string;
+}
 
 export default function Home() {
   const [activeNav, setActiveNav] = useState('Dashboard');
+  const [timeframe, setTimeframe] = useState('15m');
+  const [previousPrice, setPreviousPrice] = useState(null);
+  const [lastUpdateTime, setLastUpdateTime] = useState(Date.now());
+  const [isInitialPeriod, setIsInitialPeriod] = useState(true);
+  const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
+  const [zoomState, setZoomState] = useState<ZoomState | null>(null);
+  const [trades, setTrades] = useState<Trade[]>([]);
 
-  const data = {
-    labels: ["12.21", "12.22", "12.23", "12.24", "12.25", "12.26", "12.27", "12.28", "12.29", "12.30"],
-    datasets: [
-      {
-        label: "Dataset 1",
-        data: [10, 20, 15, 30, 40, 25, 35, 50, 45, 20],
-        backgroundColor: "#3b82f6",
-        borderRadius: 10, // Add rounded corners to the bars
-
-      },
-      {
-        label: "Dataset 2",
-        data: [15, 10, 25, 20, 30, 40, 20, 45, 30, 15],
-        backgroundColor: "#22c55e",
-        borderRadius: 10, // Add rounded corners to the bars
-
-      },
-      {
-        label: "Dataset 3",
-        data: [20, 15, 10, 25, 35, 30, 40, 20, 35, 25],
-        backgroundColor: "#ef4444",
-        borderRadius: 10, // Add rounded corners to the bars
-
-      },
-    ],
+  const initialData = {
+    labels: Array(100).fill('').map((_, i) => ''),
+    datasets: [{
+      label: "BTC/USDT",
+      data: Array(100).fill(null),
+      borderColor: '#3b82f6',
+      backgroundColor: "rgba(59, 130, 246, 0.2)",
+      fill: true,
+      tension: 0,
+      borderWidth: 8,
+      pointRadius: 0,
+      segment: {
+        borderColor: (ctx: any) => {
+          if (ctx.p0.parsed.y > ctx.p1.parsed.y) {
+            return '#ef4444';
+          }
+          return '#22c55e';
+        },
+        backgroundColor: (ctx: any) => {
+          if (ctx.p0.parsed.y > ctx.p1.parsed.y) {
+            return 'rgba(239, 68, 68, 0.2)';
+          }
+          return 'rgba(34, 197, 94, 0.2)';
+        }
+      }
+    }],
   };
+
+  const [chartData, setChartData] = useState(initialData);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialPeriod(false);
+    }, 120000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const getUpdateInterval = (tf: string) => {
+    if (isInitialPeriod) return 1000;
+
+    return 15000;
+  };
+
+  const fetchHistoricalData = async () => {
+    try {
+      const response = await fetch('https://www.okx.com/api/v5/market/candles?instId=BTC-USDT&bar=1m&limit=100');
+      const data = await response.json();
+      
+      if (data.data) {
+        const historicalPrices = data.data.reverse().map((candle: string[]) => ({
+          time: new Date(parseInt(candle[0])).toLocaleTimeString(),
+          price: parseFloat(candle[4])
+        }));
+
+        setChartData(prevData => ({
+          labels: historicalPrices.map((item: { time: string }) => item.time),
+          datasets: [{
+            ...prevData.datasets[0],
+            data: historicalPrices.map((item: { price: number }) => item.price),
+          }]
+        }));
+        setIsHistoryLoaded(true);
+      }
+    } catch (error) {
+      console.error('Error fetching historical data:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (!isHistoryLoaded) {
+      fetchHistoricalData();
+      return;
+    }
+
+    const ws = new WebSocket('wss://ws.okx.com:8443/ws/v5/public');
+    const updateInterval = getUpdateInterval(timeframe);
+
+    ws.onopen = () => {
+      console.log('WebSocket connected');
+      ws.send(JSON.stringify({
+        op: 'subscribe',
+        args: [{
+          channel: "tickers",
+          instId: "BTC-USDT"
+        }]
+      }));
+    };
+
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      if (message.data && message.data[0]) {
+        const currentTime = Date.now();
+        if (currentTime - lastUpdateTime >= updateInterval) {
+          const newPrice = parseFloat(message.data[0].last);
+          const now = new Date();
+          const timeStr = now.toLocaleTimeString();
+
+          setChartData(prevData => {
+            const lastPrice = prevData.datasets[0].data[prevData.datasets[0].data.length - 1];
+            
+            return {
+              labels: [...prevData.labels.slice(1), timeStr],
+              datasets: [{
+                ...prevData.datasets[0],
+                data: [...prevData.datasets[0].data.slice(1), newPrice],
+                segment: {
+                  borderColor: (ctx: any) => {
+                    if (ctx.p0.parsed.y > ctx.p1.parsed.y) {
+                      return '#ef4444';
+                    }
+                    return '#22c55e';
+                  },
+                  backgroundColor: (ctx: any) => {
+                    if (ctx.p0.parsed.y > ctx.p1.parsed.y) {
+                      return 'rgba(239, 68, 68, 0.2)';
+                    }
+                    return 'rgba(34, 197, 94, 0.2)';
+                  }
+                }
+              }],
+            };
+          });
+
+          setPreviousPrice(newPrice);
+          setLastUpdateTime(currentTime);
+        }
+      }
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [timeframe, lastUpdateTime, isInitialPeriod, isHistoryLoaded]);
+
+  useEffect(() => {
+    const ws = new WebSocket('wss://ws.okx.com:8443/ws/v5/public');
+    
+    ws.onopen = () => {
+      ws.send(JSON.stringify({
+        op: 'subscribe',
+        args: [
+          { channel: "tickers", instId: "BTC-USDT" },
+          { channel: "tickers", instId: "ETH-USDT" },
+          { channel: "tickers", instId: "XRP-USDT" },
+          { channel: "tickers", instId: "USDT-USDT" },
+          { channel: "tickers", instId: "BNB-USDT" },
+          { channel: "tickers", instId: "SOL-USDT" },
+          { channel: "tickers", instId: "DOGE-USDT" },
+          { channel: "tickers", instId: "USDC-USDT" },
+          { channel: "tickers", instId: "ADA-USDT" },
+        ]
+      }));
+    };
+
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      if (message.data && message.data[0]) {
+        const ticker = message.data[0];
+        updateTrades(ticker);
+      }
+    };
+
+    return () => ws.close();
+  }, []);
+
+  const updateTrades = (ticker: any) => {
+    const symbolMap: { [key: string]: string } = {
+      'BTC-USDT': 'Bitcoin',
+      'ETH-USDT': 'Ethereum',
+      'XRP-USDT': 'Ripple',
+      'USDT-USDT': 'Tether',
+      'BNB-USDT': 'BNB',
+      'SOL-USDT': 'Solana',
+      'DOGE-USDT': 'Dogecoin',
+      'USDC-USDT': 'USD Coin',
+      'ADA-USDT': 'Cardano'
+    };
+
+    const trade: Trade = {
+      symbol: ticker.instId.split('-')[0],
+      name: symbolMap[ticker.instId] || ticker.instId,
+      price: parseFloat(ticker.last),
+      change24h: ((parseFloat(ticker.last) - parseFloat(ticker.open24h)) / parseFloat(ticker.open24h)) * 100,
+      volume24h: `$${(parseFloat(ticker.volCcy24h)/1000000).toFixed(2)}T`
+    };
+
+    setTrades(prev => {
+      const existing = prev.find(t => t.symbol === trade.symbol);
+      if (!existing) {
+        return [...prev, trade];
+      }
+      return prev.map(t => t.symbol === trade.symbol ? trade : t);
+    });
+  };
+
   const options = {
     responsive: true,
+    animation: {
+      duration: 0
+    },
     plugins: {
       legend: {
-        display: false, // Disable the legend (color labels)
+        display: true,
         position: "top",
       },
       title: {
-        display: false,
+        display: true,
+        text: 'BTC/USDT Real-time Chart',
       },
+      zoom: {
+        pan: {
+          enabled: true,
+          mode: 'xy',
+        },
+        zoom: {
+          wheel: {
+            enabled: true,
+          },
+          pinch: {
+            enabled: true,
+          },
+          mode: 'xy',
+        },
+        onZoomComplete: (chart: any) => {
+          setZoomState({
+            x: chart.scales.x.getZoomLevel(),
+            y: chart.scales.y.getZoomLevel(),
+            xMin: chart.scales.x.min,
+            xMax: chart.scales.x.max,
+            yMin: chart.scales.y.min,
+            yMax: chart.scales.y.max
+          });
+        },
+        limits: {
+          x: {minRange: 1000},
+          y: {minRange: 100}
+        }
+      }
     },
     scales: {
       x: {
-        stacked: false,
         grid: {
-          display: false, // Hide the x-axis grid lines
-        },
-      },
-      y: {
-        stacked: false,
-        grid: {
-          display: false, // Hide the y-axis grid lines
+          display: false,
         },
         ticks: {
-          display: false, // Hide the y-axis labels
+          maxTicksLimit: 10,
+          autoSkip: true,
         },
-        borderColor: 'transparent', // Remove left border line
+        min: zoomState?.xMin,
+        max: zoomState?.xMax,
+      },
+      y: {
+        grid: {
+          display: true,
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+        ticks: {
+          precision: 1,
+        },
+        min: zoomState?.yMin,
+        max: zoomState?.yMax,
       },
     },
+    interaction: {
+      intersect: false,
+      mode: 'index',
+    },
+    elements: {
+      line: {
+        capBezierPoints: true
+      }
+    }
   };
-  
-
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -217,16 +467,66 @@ export default function Home() {
                   <h3 className="font-semibold text-gray-700">Company Performance</h3>
                   <p className="text-gray-500 mt-2">Daily Reporting Indicators</p>
                   <div className="w-full max-w-4xl mx-auto">
-                <Bar options={options} data={data} />
-                </div>
+                    <Line options={options} data={chartData} />
+                  </div>
                 </div>
                 
               </section>
-              <section >
+              <section>
                 <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow duration-200">
-                  <h2 className="text-lg font-semibold text-blue-600">Limina Live Trades
-                  </h2>
-                  <p className="text-gray-500 mt-2">Profitable transactions                  </p>
+                  <h2 className="text-lg font-semibold text-black">Market Overview</h2>
+                  <p className="text-black mt-2">Live cryptocurrency prices and trading volume</p>
+                  
+                  <div className="mt-4 overflow-x-auto">
+                    <table className="min-w-full">
+                      <thead>
+                        <tr className="text-left text-black">
+                          <th className="py-3 px-4">Name</th>
+                          <th className="py-3 px-4">Price</th>
+                          <th className="py-3 px-4">24h Change</th>
+                          <th className="py-3 px-4">Market Cap</th>
+                          <th className="py-3 px-4"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {trades.map((trade) => (
+                          <tr key={trade.symbol} className="border-t">
+                            <td className="py-3 px-4">
+                              <div className="flex items-center">
+                                <img 
+                                  src={`https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/${trade.symbol.toLowerCase()}.png`}
+                                  alt={trade.symbol}
+                                  className="w-6 h-6 mr-2"
+                                  onError={(e) => {
+                                    e.currentTarget.src = '/default-crypto-icon.png'
+                                  }}
+                                />
+                                <div>
+                                  <div className="font-medium text-black font-semibold">{trade.symbol}</div>
+                                  <div className="text-sm text-gray-500">{trade.name}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-black">${trade.price.toLocaleString()}</td>
+                            <td className={`py-3 px-4 ${trade.change24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                              {trade.change24h.toFixed(2)}%
+                            </td>
+                            <td className="py-3 px-4 text-black">{trade.volume24h}</td>
+                            <td className="py-3 px-4">
+                              <div className="flex space-x-2">
+                                <button className="px-3 py-1 text-sm bg-blue-100 text-blue-600 rounded">
+                                  Trade
+                                </button>
+                                <button className="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded">
+                                  Convert
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </section>
             </>
