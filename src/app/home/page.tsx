@@ -5,6 +5,7 @@ import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, LineElement, PointElement, LinearScale, CategoryScale, Title, Tooltip, Legend } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
 import Payment from '../payment/page'
+import ProfileDetails from './ProfileDetails';
 
 ChartJS.register(
   LineElement, 
@@ -43,6 +44,8 @@ export default function Home() {
   const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
   const [zoomState, setZoomState] = useState<ZoomState | null>(null);
   const [trades, setTrades] = useState<Trade[]>([]);
+  const [user, setUser] = useState<{ name: string; uid: string; email: string } | null>(null);
+  const [showProfileDetails, setShowProfileDetails] = useState(false);
 
   const initialData = {
     labels: Array(100).fill('').map((_, i) => ''),
@@ -319,6 +322,24 @@ export default function Home() {
     }
   };
 
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const userDetails = {
+    rank: "Preparatory Representative",
+    secondaryVolume: "0.00",
+    totalVolume: "50,000.00",
+    totalRevenue: "0.00",
+    secondaryToday: "0.00",
+    revenueToday: "0.00",
+    referralCode: "WMVWIF",
+    referralLink: "https://localhost:3000",
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Top Navigation */}
@@ -353,10 +374,30 @@ export default function Home() {
         {/* Sidebar */}
         <aside className="w-84 bg-white shadow-lg p-6 flex flex-col">
 
+          {/* User Info Section */}
+          {user && (
+            <div className="bg-blue-500 text-white p-4 rounded-lg mb-6 flex items-center cursor-pointer" onClick={() => setShowProfileDetails(true)}>
+              <div className="w-12 h-12 rounded-full bg-gray-300 mr-4"></div>
+              <div>
+                <p className="font-semibold">{user.name}</p>
+                <p className="text-sm">UID {user.uid}</p>
+                <p className="text-sm">{user.email}</p>
+                <div className="bg-white text-black font-bold p-2 rounded mt-2">
+                  Preparatory Representative
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Hiển thị ProfileDetails nếu showProfileDetails là true */}
+          {showProfileDetails && (
+            <ProfileDetails user={userDetails} onClose={() => setShowProfileDetails(false)} />
+          )}
+
           {/* Balance Section */}
           <div className="mb-6">
-            <p className="text-gray-500 text-sm">BALANCE</p>
-            <p className="gray-500 font-semibold">$ 0.00</p>
+            <p className="text-black text-sm font-bold">BALANCE</p>
+            <p className="text-black font-semibold text-lg">$ 0.00</p>
             <p className="text-gray-500 text-sm mt-2">DAILY PROFIT</p>
             <p className="text-gray-500 font-semibold">$ 0</p>
           </div>
