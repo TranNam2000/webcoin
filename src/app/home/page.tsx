@@ -380,7 +380,6 @@ export default function Home() {
               <div className="w-12 h-12 rounded-full bg-gray-300 mr-4"></div>
               <div>
                 <p className="font-semibold">{user.name}</p>
-                <p className="text-sm">UID {user.uid}</p>
                 <p className="text-sm">{user.email}</p>
                 <div className="bg-white text-black font-bold p-2 rounded mt-2">
                   Preparatory Representative
