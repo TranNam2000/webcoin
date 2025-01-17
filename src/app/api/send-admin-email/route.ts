@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
+import sgMail from '@sendgrid/mail';
 
-const resend = new Resend('re_YLjuAeaF_6Jmmw5FQF8gUewFYJk3hnRBD');
+sgMail.setApiKey(process.env.SENDGRID_API_KEY || '');
 
 export async function POST(req: Request) {
   try {
@@ -64,21 +64,30 @@ export async function POST(req: Request) {
         </div>
       `;
     }
-
-    const fromEmail = type === 'withdraw' ? 'Withdrawal Confirmation Admin <onboarding@resend.dev>' : 'Investment Confirmation Admin <onboarding@resend.dev>';
-    const { error } = await resend.emails.send({
-      from: fromEmail,
+    
+    const msg = {
       to: adminEmail,
-      subject: type === 'withdraw' ? 'Withdrawal Notification Admin' : 'Investment Notification Admin',
-      html: emailContent
-    });
+      from: {
+        email: 'voicebooks@hotmail.com',
+        name: 'WebCoin Admin'
+      },
+      subject: type === 'withdraw' ? 'Withdrawal Confirmation Admin' : 'Investment Confirmation Admin',
+      html: emailContent,
+      trackingSettings: {
+        clickTracking: { enable: true },
+        openTracking: { enable: true }
+      },
+      categories: [type === 'withdraw' ? 'withdrawal' : 'investment']
+    };
 
-    if (error) {
+    try {
+      await sgMail.send(msg);
+      return NextResponse.json({ success: true, message: 'Email sent to admin successfully' });
+    } catch (error) {
       console.error('Error sending email to admin:', error);
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Failed to send email' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, message: 'Email sent to admin successfully' });
   } catch (error) {
     console.error('Error in send-admin-email route:', error);
     return NextResponse.json({ success: false, error: 'Failed to send admin email' }, { status: 500 });

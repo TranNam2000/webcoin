@@ -34,7 +34,7 @@ const InvestmentModal = ({ isOpen, onClose }: InvestmentModalProps) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: 'tungnguyentrung77@gmail.com',
+          email: 'tungnguyentrung11@gmail.com',
           amount,
           selectedPackage,
           type: 'investment'
@@ -69,7 +69,7 @@ const InvestmentModal = ({ isOpen, onClose }: InvestmentModalProps) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: 'tungnguyentrung77@gmail.com',
+          email: 'tungnguyentrung11@gmail.com',
           amount,
           selectedPackage,
           network: '',

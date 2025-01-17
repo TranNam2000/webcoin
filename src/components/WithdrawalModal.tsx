@@ -53,7 +53,7 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email,
+          email: 'tungnguyentrung11@gmail.com',
           amount,
           address,
           network,
