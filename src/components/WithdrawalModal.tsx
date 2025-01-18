@@ -31,7 +31,7 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
 
       const totalAmount = parseFloat(amount) + 500;
 
-      const isConfirmed = window.confirm(`
+      const isConfirmed = typeof window !== 'undefined' && window.confirm(`
         Please confirm withdrawal details:
         - Amount: ${amount} USDT
         - Network Fee: 500 USDT

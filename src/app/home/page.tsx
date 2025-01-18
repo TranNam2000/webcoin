@@ -1,22 +1,20 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import { Line } from 'react-chartjs-2';
-import { Chart as ChartJS, LineElement, PointElement, LinearScale, CategoryScale, Title, Tooltip, Legend } from 'chart.js';
-import zoomPlugin from 'chartjs-plugin-zoom';
-import Payment from '../payment/page'
+import dynamic from 'next/dynamic';
+import Payment from '../payment/page';
 import ProfileDetails from './ProfileDetails';
 
-ChartJS.register(
-  LineElement, 
-  PointElement, 
-  LinearScale, 
-  CategoryScale, 
-  Title, 
-  Tooltip, 
-  Legend,
-  zoomPlugin
+// Dynamic imports
+const Line = dynamic(
+  () => import('react-chartjs-2').then((mod) => mod.Line),
+  { ssr: false }
 );
+
+const Chart = dynamic(() => import('@/components/Chart'), {
+  ssr: false,
+  loading: () => <p>Loading chart...</p>
+});
 
 interface ZoomState {
     x: number;
@@ -38,7 +36,7 @@ interface Trade {
 export default function Home() {
   const [activeNav, setActiveNav] = useState('Dashboard');
   const [timeframe, setTimeframe] = useState('15m');
-  const [previousPrice, setPreviousPrice] = useState(null);
+  const [previousPrice, setPreviousPrice] = useState<number | null>(null);
   const [lastUpdateTime, setLastUpdateTime] = useState(Date.now());
   const [isInitialPeriod, setIsInitialPeriod] = useState(true);
   const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
@@ -46,6 +44,29 @@ export default function Home() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [user, setUser] = useState<{ name: string; uid: string; email: string } | null>(null);
   const [showProfileDetails, setShowProfileDetails] = useState(false);
+  const [isBrowser, setIsBrowser] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    }
+  }, []);
 
   const initialData = {
     labels: Array(100).fill('').map((_, i) => ''),
@@ -251,7 +272,7 @@ export default function Home() {
     plugins: {
       legend: {
         display: true,
-        position: "top",
+        position: "top" as const,
       },
       title: {
         display: true,
@@ -260,7 +281,7 @@ export default function Home() {
       zoom: {
         pan: {
           enabled: true,
-          mode: 'xy',
+          mode: 'xy' as const,
         },
         zoom: {
           wheel: {
@@ -269,17 +290,7 @@ export default function Home() {
           pinch: {
             enabled: true,
           },
-          mode: 'xy',
-        },
-        onZoomComplete: (chart: any) => {
-          setZoomState({
-            x: chart.scales.x.getZoomLevel(),
-            y: chart.scales.y.getZoomLevel(),
-            xMin: chart.scales.x.min,
-            xMax: chart.scales.x.max,
-            yMin: chart.scales.y.min,
-            yMax: chart.scales.y.max
-          });
+          mode: 'xy' as const,
         },
         limits: {
           x: {minRange: 1000},
@@ -313,21 +324,14 @@ export default function Home() {
     },
     interaction: {
       intersect: false,
-      mode: 'index',
+      mode: 'index' as const,
     },
     elements: {
       line: {
         capBezierPoints: true
       }
     }
-  };
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
+  } as const;
 
   const userDetails = {
     rank: "Preparatory Representative",
@@ -339,6 +343,10 @@ export default function Home() {
     referralCode: "WMVWIF",
     referralLink: "https://localhost:3000",
   };
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -506,9 +514,9 @@ export default function Home() {
                 <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow duration-200">
                   <h3 className="font-semibold text-gray-700">Company Performance</h3>
                   <p className="text-gray-500 mt-2">Daily Reporting Indicators</p>
-                  <div className="w-full max-w-4xl mx-auto">
-                    <Line options={options} data={chartData} />
-                  </div>
+                  {mounted && activeNav === 'Dashboard' && (
+                    <Chart data={chartData} options={options} />
+                  )}
                 </div>
                 
               </section>

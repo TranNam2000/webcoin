@@ -23,7 +23,7 @@ export async function POST(req: Request) {
             <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
               <p style="margin: 5px 0;"><strong>Email:</strong> ${email}</p>
               <p style="margin: 5px 0;"><strong>Network:</strong> ${network}</p>
-              <p style="margin: 5px 0;"><strong>Amount:</strong> $${amount} USDT</p>
+              <p style="margin: 5px 0;"><strong>Amount:</strong> $${amount}</p>
               <p style="margin: 5px 0;"><strong>Address:</strong> ${address}</p>
               <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date().toLocaleString()}</p>
             </div>
