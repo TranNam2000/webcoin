@@ -19,6 +19,7 @@
     "@react-financial-charts/utils": "^2.0.1",
     "@react-icons/all-files": "^4.1.0",
     "@sendgrid/mail": "^8.1.4",
+    "axios": "^1.7.9",
     "chart.js": "^4.4.7",
     "chartjs-adapter-date-fns": "^3.0.0",
     "chartjs-adapter-moment": "^1.0.1",
