@@ -1,8 +1,11 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 
 export default function Register() {
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
     email: '',
     phone: '',
@@ -20,7 +23,7 @@ export default function Register() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: { preventDefault: () => void; }) => {
     e.preventDefault();
     const { email, phone, password, country } = formData;
 
@@ -37,13 +40,30 @@ export default function Register() {
     // Start loading
     setLoading(true);
 
-    // Fake API call simulation
-    setTimeout(() => {
-      console.log(formData);
-      setSuccessMessage('Registration successful!');
-      setFormData({ email: '', phone: '', password: '', country: '' });
-      setLoading(false); // End loading
-    }, 2000);
+    try {
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          formData
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        router.push('/login');
+      } else {
+        setError(data.error || 'register failed');
+      }
+    } catch (err) {
+      setError('Connection error');
+    } finally {
+      setLoading(false);
+    }
+
   };
 
   return (
@@ -54,7 +74,7 @@ export default function Register() {
           <img
             src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
             alt="Registration Logo"
-                className="mx-auto h-10 w-auto"  />
+            className="mx-auto h-10 w-auto" />
         </div>
 
         <div className="text-center">
@@ -177,4 +197,4 @@ export default function Register() {
       </div>
     </div>
   );
-}
+};
