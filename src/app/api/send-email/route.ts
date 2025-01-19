@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
+import sgMail from '@sendgrid/mail';
 
-const resend = new Resend('re_YLjuAeaF_6Jmmw5FQF8gUewFYJk3hnRBD');
+sgMail.setApiKey(process.env.SENDGRID_API_KEY || '');
 
 export async function POST(req: Request) {
   try {
     const { email, amount, selectedPackage, type } = await req.json();
 
-    // Log để debug
     console.log('Sending email to:', email);
     console.log('Amount:', amount);
     console.log('Type:', type);
@@ -69,26 +68,26 @@ export async function POST(req: Request) {
       `;
     }
 
-    const fromEmail = type === 'withdraw' ? 'Withdrawal Confirmation <onboarding@resend.dev>' : 'Investment Confirmation <onboarding@resend.dev>';
-    const { data, error } = await resend.emails.send({
-      from: fromEmail,
+    const msg = {
       to: email,
+      from: {
+        email: 'voicebooks@hotmail.com',
+        name: 'WebCoin'
+      },
       subject: type === 'withdraw' ? 'Withdrawal Confirmation' : 'Investment Confirmation',
-      html: emailContent
-    });
+      html: emailContent,
+      trackingSettings: {
+        clickTracking: { enable: true },
+        openTracking: { enable: true }
+      },
+      categories: [type === 'withdraw' ? 'withdrawal' : 'investment']
+    };
 
-    if (error) {
-      console.error('Resend error:', error);
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 500 }
-      );
-    }
+    await sgMail.send(msg);
 
     return NextResponse.json({ 
       success: true, 
       message: 'Email sent successfully',
-      data 
     });
 
   } catch (error) {

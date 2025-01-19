@@ -1,6 +1,6 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Home() {
   const router = useRouter();
@@ -8,8 +8,15 @@ export default function Home() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loginData, setLoginData] = useState<any>(null);
 
- 
+  useEffect(() => {
+    if (loginData && typeof window !== 'undefined') {
+      localStorage.setItem('token', loginData.token);
+      localStorage.setItem('user', JSON.stringify(loginData.user));
+      router.push('/home');
+    }
+  }, [loginData, router]);
 
   const handleSubmit = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
@@ -31,9 +38,7 @@ export default function Home() {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        router.push('/home');
+        setLoginData(data);
       } else {
         setError(data.error || 'Login failed');
       }
@@ -43,12 +48,10 @@ export default function Home() {
       setLoading(false);
     }
   };
-  
 
-  const handleRegiter=(e: { preventDefault: () => void; }) => {
-
-    router.push("/register")
-  }
+    const handleRegister = (e: { preventDefault: () => void }) => {
+        router.push("/register");
+    };
 
   return (
     <div className="bg-white">
@@ -66,7 +69,6 @@ export default function Home() {
 
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-900">
                 Email address
@@ -85,7 +87,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-900">
                 Password
@@ -104,10 +105,8 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Error Message */}
             {error && <p className="text-red-500 text-sm">{error}</p>}
 
-            {/* Submit */}
             <div>
               <button
                 type="submit"
@@ -118,7 +117,6 @@ export default function Home() {
             </div>
           </form>
 
-          {/* Sign Up Link */}
           <p className="mt-10 text-center text-sm text-gray-500">
             Not a member?{' '}
             <a onClick={handleRegiter} className="font-semibold text-indigo-600 hover:text-indigo-500">

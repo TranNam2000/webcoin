@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 
 interface InvestmentModalProps {
@@ -8,16 +10,77 @@ interface InvestmentModalProps {
 const InvestmentModal = ({ isOpen, onClose }: InvestmentModalProps) => {
   const [amount, setAmount] = useState('100');
   const [selectedPackage, setSelectedPackage] = useState('');
+  const [selectedNetwork, setSelectedNetwork] = useState('USDT');
   const [loading, setLoading] = useState(false);
 
-  const packages = [
-    'Spark',
-    'Blaze',
-    'Radiance',
-    'Glow',
-    'Luminous',
-    'Brilliance'
+  const networks = [
+    { symbol: 'BTC', icon: '₿', color: 'text-orange-500' },
+    { symbol: 'ETH', icon: 'Ξ', color: 'text-blue-400' },
+    { symbol: 'USDT', icon: '₮', color: 'text-green-500' },
+    { symbol: 'BNB', icon: 'BNB', color: 'text-yellow-500' },
+    { symbol: 'USDC', icon: 'USDC', color: 'text-blue-500' },
+    { symbol: 'LTC', icon: 'Ł', color: 'text-gray-400' },
+    { symbol: 'SOL', icon: 'SOL', color: 'text-purple-500' },
+    { symbol: 'DAI', icon: 'DAI', color: 'text-yellow-400' },
   ];
+
+  const getPackagesForNetwork = (network: string) => {
+    switch (network) {
+      case 'USDT':
+        return [
+          { name: 'Spark', range: '10 - 200,000 USDT', rate: '0.65%' },
+          { name: 'Blaze', range: '10 - 200,000 USDT', rate: '0.91%' },
+          { name: 'Radiance', range: '10 - 200,000 USDT', rate: '1.10%' },
+          { name: 'Glow', range: '10 - 200,000 USDT', rate: '1.45%' },
+          { name: 'Luminous', range: '10 - 200,000 USDT', rate: '1.73%' },
+          { name: 'Brilliance', range: '10 - 200,000 USDT', rate: '2.46%' }
+        ];
+      case 'BTC':
+        return [
+          { name: 'BTC Starter', range: '0.001 - 5 BTC', rate: '0.65%' },
+          { name: 'BTC Pro', range: '0.001 - 5 BTC', rate: '1.45%' },
+          { name: 'BTC Elite', range: '0.001 - 5 BTC', rate: '2.10%' }
+        ];
+      case 'ETH':
+        return [
+          { name: 'ETH Starter', range: '0.01 - 50 ETH', rate: '0.91%' },
+          { name: 'ETH Pro', range: '0.01 - 50 ETH', rate: '1.73%' },
+          { name: 'ETH Elite', range: '0.01 - 50 ETH', rate: '2.46%' }
+        ];
+      case 'BNB':
+        return [
+          { name: 'BNB Starter', range: '0.1 - 100 BNB', rate: '0.85%' },
+          { name: 'BNB Growth', range: '0.1 - 100 BNB', rate: '1.55%' },
+          { name: 'BNB Premium', range: '0.1 - 100 BNB', rate: '2.25%' }
+        ];
+      case 'USDC':
+        return [
+          { name: 'USDC Basic', range: '100 - 100,000 USDC', rate: '0.65%' },
+          { name: 'USDC Plus', range: '100 - 100,000 USDC', rate: '1.45%' },
+          { name: 'USDC Elite', range: '100 - 100,000 USDC', rate: '2.10%' }
+        ];
+      case 'LTC':
+        return [
+          { name: 'LTC Basic', range: '0.1 - 100 LTC', rate: '0.75%' },
+          { name: 'LTC Plus', range: '0.1 - 100 LTC', rate: '1.55%' },
+          { name: 'LTC Premium', range: '0.1 - 100 LTC', rate: '2.15%' }
+        ];
+      case 'SOL':
+        return [
+          { name: 'SOL Basic', range: '1 - 1,000 SOL', rate: '0.85%' },
+          { name: 'SOL Growth', range: '1 - 1,000 SOL', rate: '1.65%' },
+          { name: 'SOL Premium', range: '1 - 1,000 SOL', rate: '2.35%' }
+        ];
+      case 'DAI':
+        return [
+          { name: 'DAI Basic', range: '10 - 100,000 DAI', rate: '0.65%' },
+          { name: 'DAI Plus', range: '10 - 100,000 DAI', rate: '1.45%' },
+          { name: 'DAI Premium', range: '10 - 100,000 DAI', rate: '2.10%' }
+        ];
+      default:
+        return [];
+    }
+  };
 
   const handleAgree = async () => {
     try {
@@ -34,18 +97,19 @@ const InvestmentModal = ({ isOpen, onClose }: InvestmentModalProps) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: 'tungnguyentrung77@gmail.com',
-          amount,
+          email: 'tungnguyentrung11@gmail.com',
+          amount: `${amount} ${selectedNetwork}`,
           selectedPackage,
+          network: selectedNetwork,
           type: 'investment'
         })
       });
 
       const result = await response.json();
-      handleAgreeAdmin();
+      await handleAgreeAdmin();
 
       if (result.success) {
-        alert('Investment successful! Check your email for confirmation.');
+        alert(`Investment successful! Check your email for confirmation. Amount: ${amount} ${selectedNetwork}`);
         setAmount('');
         setSelectedPackage('');
         onClose();
@@ -69,12 +133,12 @@ const InvestmentModal = ({ isOpen, onClose }: InvestmentModalProps) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: 'tungnguyentrung77@gmail.com',
-          amount,
+          email: 'tungnguyentrung11@gmail.com',
+          amount: `${amount} ${selectedNetwork}`,
           selectedPackage,
-          network: '',
+          network: selectedNetwork,
           type: 'investment',
-          message: `A new investment has been made: ${amount} in package ${selectedPackage}.`
+          message: `A new investment has been made: ${amount} ${selectedNetwork} in package ${selectedPackage}.`
         })
       });
 
@@ -125,6 +189,30 @@ const InvestmentModal = ({ isOpen, onClose }: InvestmentModalProps) => {
             />
           </div>
 
+          {/* Network Selection */}
+          <div>
+            <label className="text-white block mb-2">Network</label>
+            <div className="grid grid-cols-4 gap-2">
+              {networks.map((network) => (
+                <button
+                  key={network.symbol}
+                  onClick={() => {
+                    setSelectedNetwork(network.symbol);
+                    setSelectedPackage('');
+                  }}
+                  className={`p-2 rounded flex flex-col items-center justify-center ${
+                    selectedNetwork === network.symbol 
+                      ? 'bg-gray-700 border border-gray-600' 
+                      : 'bg-[#2a2a2a]'
+                  }`}
+                >
+                  <span className={`text-xl ${network.color}`}>{network.icon}</span>
+                  <span className="text-white text-sm mt-1">{network.symbol}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div>
             <label className="text-white block mb-2">Amount</label>
             <div className="relative">
@@ -134,7 +222,7 @@ const InvestmentModal = ({ isOpen, onClose }: InvestmentModalProps) => {
                 onChange={(e) => setAmount(e.target.value)}
                 className="w-full bg-[#2a2a2a] text-white p-2 rounded"
               />
-              <span className="absolute right-3 top-2 text-white">USD</span>
+              <span className="absolute right-3 top-2 text-white">{selectedNetwork}</span>
             </div>
           </div>
 
@@ -146,9 +234,11 @@ const InvestmentModal = ({ isOpen, onClose }: InvestmentModalProps) => {
                 onChange={(e) => setSelectedPackage(e.target.value)}
                 className="w-full bg-[#2a2a2a] text-orange-500 p-2 rounded appearance-none"
               >
-                <option value="">Select Investment Packages</option>
-                {packages.map((pkg) => (
-                  <option key={pkg} value={pkg}>{pkg}</option>
+                <option value="">Select Investment Package</option>
+                {getPackagesForNetwork(selectedNetwork).map((pkg) => (
+                  <option key={pkg.name} value={pkg.name}>
+                    {pkg.name} ({pkg.range}) - {pkg.rate}
+                  </option>
                 ))}
               </select>
             </div>
