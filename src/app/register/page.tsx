@@ -6,6 +6,7 @@ export default function Register() {
   const router = useRouter();
 
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -21,14 +22,14 @@ export default function Register() {
 
   const handleSubmit = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
-    const { email, password, confirmPassword } = formData;
+    const { name, email, password, confirmPassword } = formData;
 
     // Reset messages
     setError('');
     setSuccessMessage('');
 
     // Validation
-    if (!email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword) {
       setError('All fields are required!');
       return;
     }
@@ -48,8 +49,10 @@ export default function Register() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          name,
           email,
           password,
+          confirmPassword
         }),
       });
 
@@ -84,6 +87,25 @@ export default function Register() {
         </div>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
+          {/* Name */}
+          <div>
+            <label
+              htmlFor="name"
+              className={`block text-sm font-medium ${formData.name ? 'text-black' : 'text-gray-700'}`}
+            >
+              Name
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Your Name"
+              className="mt-2 block w-full rounded-lg border border-gray-300 px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-300"
+              required
+            />
+          </div>
+
           {/* Email */}
           <div>
             <label
