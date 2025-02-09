@@ -17,7 +17,9 @@ export default function Home() {
       router.push('/home');
     }
   }, [loginData, router]);
-
+  const handleRegister = (e: { preventDefault: () => void }) => {
+    router.push("/register");
+};
   const handleSubmit = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     setError('');
@@ -49,9 +51,7 @@ export default function Home() {
     }
   };
 
-  const handleRegiter = (e: { preventDefault: () => void; }) => {
-    router.push("/register")
-  }
+   
 
   return (
     <div className="bg-white">
@@ -119,7 +119,7 @@ export default function Home() {
 
           <p className="mt-10 text-center text-sm text-gray-500">
             Not a member?{' '}
-            <a onClick={handleRegiter} className="font-semibold text-indigo-600 hover:text-indigo-500">
+            <a onClick={handleRegister} className="font-semibold text-indigo-600 hover:text-indigo-500">
               Sign Up
             </a>
           </p>

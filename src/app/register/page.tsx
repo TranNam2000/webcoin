@@ -1,60 +1,84 @@
 'use client';
 import { useState } from 'react';
-
+import { useRouter } from 'next/navigation';
 
 export default function Register() {
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
-    phone: '',
     password: '',
-    country: '',
+    confirmPassword: '',
   });
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const countries = ['Vietnam', 'United States', 'Japan', 'Korea', 'China'];
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
-    const { email, phone, password, country } = formData;
+    const { name, email, password, confirmPassword } = formData;
 
     // Reset messages
     setError('');
     setSuccessMessage('');
 
     // Validation
-    if (!email || !phone || !password || !country) {
+    if (!name || !email || !password || !confirmPassword) {
       setError('All fields are required!');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match!');
       return;
     }
 
     // Start loading
     setLoading(true);
 
-    // Fake API call simulation
-    setTimeout(() => {
-      console.log(formData);
-      setSuccessMessage('Registration successful!');
-      setFormData({ email: '', phone: '', password: '', country: '' });
-      setLoading(false); // End loading
-    }, 2000);
+    try {
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name, 
+          email,
+          password,
+          confirmPassword
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        router.push('/login');
+      } else {
+        setError(data.error || 'Registration failed');
+      }
+    } catch (err) {
+      setError('Connection error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-xl">
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-2xl">
         {/* Image */}
         <div className="flex justify-center mb-6">
           <img
             src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
             alt="Registration Logo"
-                className="mx-auto h-10 w-auto"  />
+            className="mx-auto h-12 w-auto" />
         </div>
 
         <div className="text-center">
@@ -63,6 +87,25 @@ export default function Register() {
         </div>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
+          {/* Name */}
+          <div>
+            <label
+              htmlFor="name"
+              className={`block text-sm font-medium ${formData.name ? 'text-black' : 'text-gray-700'}`}
+            >
+              Name
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Your Name"
+              className="mt-2 block w-full rounded-lg border border-gray-300 px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-300"
+              required
+            />
+          </div>
+
           {/* Email */}
           <div>
             <label
@@ -77,26 +120,7 @@ export default function Register() {
               value={formData.email}
               onChange={handleChange}
               placeholder="example@domain.com"
-              className="mt-2 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-300"
-              required
-            />
-          </div>
-
-          {/* Phone */}
-          <div>
-            <label
-              htmlFor="phone"
-              className={`block text-sm font-medium ${formData.phone ? 'text-black' : 'text-gray-700'}`}
-            >
-              Phone Number
-            </label>
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              placeholder="+84 123 456 789"
-              className="mt-2 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-300"
+              className="mt-2 block w-full rounded-lg border border-gray-300 px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-300"
               required
             />
           </div>
@@ -115,34 +139,28 @@ export default function Register() {
               value={formData.password}
               onChange={handleChange}
               placeholder="********"
-              className="mt-2 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-300"
+              className="mt-2 block w-full rounded-lg border border-gray-300 px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-300"
               required
             />
           </div>
 
+          {/* Confirm Password */}
           <div>
             <label
-              htmlFor="country"
-              className={`block text-sm font-medium ${formData.country ? 'text-black' : 'text-gray-700'}`}
+              htmlFor="confirmPassword"
+              className={`block text-sm font-medium ${formData.confirmPassword ? 'text-black' : 'text-gray-700'}`}
             >
-              Country
+              Confirm Password
             </label>
-            <select
-              name="country"
-              value={formData.country}
+            <input
+              type="password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
               onChange={handleChange}
-              className="mt-2 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-300"
+              placeholder="********"
+              className="mt-2 block w-full rounded-lg border border-gray-300 px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-300"
               required
-            >
-              <option value="">Select Country</option>
-              {countries.map((country, index) => (
-                <option key={index} value={country}>
-                  {country}
-                </option>
-              ))}
-            </select>
-
-
+            />
           </div>
 
           {/* Error / Success Messages */}
@@ -177,4 +195,4 @@ export default function Register() {
       </div>
     </div>
   );
-}
+};
