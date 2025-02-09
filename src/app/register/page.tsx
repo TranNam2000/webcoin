@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function Register() {
   const router = useRouter();
@@ -38,8 +39,6 @@ export default function Register() {
       setError('Passwords do not match!');
       return;
     }
-
-    // Start loading
     setLoading(true);
 
     try {
@@ -49,21 +48,31 @@ export default function Register() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name, 
+          name,
           email,
           password,
-          confirmPassword
+          password_confirmation: confirmPassword
         }),
       });
 
-      const data = await response.json();
+      const contentType = response.headers.get("content-type");
+      let data;
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        console.error("Phản hồi không phải JSON:", text);
+        throw new Error("Phản hồi không phải JSON");
+      }
 
       if (response.ok) {
+        setSuccessMessage(data.message);
         router.push('/login');
       } else {
         setError(data.error || 'Registration failed');
       }
     } catch (err) {
+      console.error("Lỗi khi gọi API:", err);
       setError('Connection error');
     } finally {
       setLoading(false);
@@ -187,9 +196,9 @@ export default function Register() {
         <div className="text-center mt-6">
           <p className="text-sm text-gray-500">
             Already have an account?{' '}
-            <a href="#" className="text-indigo-600 hover:underline">
+            <Link href="/login" className="text-indigo-600 hover:underline">
               Log in here
-            </a>
+            </Link>
           </p>
         </div>
       </div>
